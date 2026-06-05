@@ -3,13 +3,57 @@ const btn = document.querySelector('.but');
 const receipecont = document.querySelector('.receipe-cont');
 const recipedetailscontent = document.querySelector('.recipe-details-content');
 const closebtn = document.querySelector('.recipe-close');
+const featuredSection = document.getElementById('featuredSection');
+const backBtn = document.getElementById('backBtn');
+
+// Add click listeners to poster cards
+document.addEventListener('DOMContentLoaded', () => {
+    const posterCards = document.querySelectorAll('.poster-card');
+    posterCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const query = card.getAttribute('data-search');
+            SearchBox.value = query;
+            fetchreceipe(query);
+        });
+    });
+
+    // Back button event listener
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            SearchBox.value = "";
+            receipecont.innerHTML = "<h2>Search your favourite recipes.....</h2>";
+            backBtn.style.display = 'none';
+            if (featuredSection) {
+                featuredSection.style.display = 'block';
+                setTimeout(() => {
+                    featuredSection.style.opacity = '1';
+                }, 50);
+            }
+        });
+    }
+});
 
 const fetchreceipe=async (query)=>{
+    if (featuredSection) {
+        featuredSection.style.opacity = '0';
+        setTimeout(() => {
+            featuredSection.style.display = 'none';
+        }, 300);
+    }
+    if (backBtn) {
+        backBtn.style.display = 'flex';
+    }
     receipecont.innerHTML="<h2>Loading Receipes...</h2>";
     try{
     const data=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`);
     const response=await data.json();
     receipecont.innerHTML="";
+    
+    if (!response.meals) {
+        receipecont.innerHTML = `<h2>No recipes found. Try searching for something else!</h2>`;
+        return;
+    }
+
     response.meals.forEach(meal=>{
         const receipediv=document.createElement('div');
         receipediv.classList.add('recipe');
@@ -69,8 +113,32 @@ btn.addEventListener('click', (e) => {
     const searchInput= SearchBox.value.trim();
     if(!searchInput){
         receipecont.innerHTML=`<h2>Type in Search Box.</h2>`;
+        if (backBtn) {
+            backBtn.style.display = 'none';
+        }
+        if (featuredSection) {
+            featuredSection.style.display = 'block';
+            setTimeout(() => {
+                featuredSection.style.opacity = '1';
+            }, 50);
+        }
         return;
     }
     fetchreceipe(searchInput);
-    //console.log("Button Clicked");
+});
+
+// Clear results and show posters if user clears search box
+SearchBox.addEventListener('input', () => {
+    if (SearchBox.value.trim() === "") {
+        receipecont.innerHTML = `<h2>Search your favourite recipes.....</h2>`;
+        if (backBtn) {
+            backBtn.style.display = 'none';
+        }
+        if (featuredSection) {
+            featuredSection.style.display = 'block';
+            setTimeout(() => {
+                featuredSection.style.opacity = '1';
+            }, 50);
+        }
+    }
 });
